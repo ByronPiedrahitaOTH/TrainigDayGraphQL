@@ -1,4 +1,6 @@
-const { ApolloServer } = require('apollo-server');
+const { ApolloServer } = require('apollo-server')
+const path = require('path')
+const fs = require('fs')
 
 // Data link fake
 let links = [
@@ -6,46 +8,36 @@ let links = [
         id: 'link-0',
         url: 'www.dominofake.com',
         description: 'Backend trainig for GraphQL'
-    },
-    {
-        id: 'link-1',
-        url: 'www.domino2fake.com',
-        description: 'Backend trainig for GraphQL ejemplo link dos'
     }
 ]
 
-// 1
-const typeDefs = `
-  type Query {
-    info: String!
-    feed: [Link!]!
-  }
-
-  type Link {
-    id: ID!
-    description: String!
-    url: String!
-  }
-`
-// 2
 const resolvers = {
   Query: {
-    // 1
     info: () => `We are starting with the training`,
-    // 2
     feed: () => links,
   },
-  Link: {
-    id: (parent) => parent.id,
-    description: (parent) => parent.description,
-    url: (parent) => parent.url,
+  Mutation: {
+    createLink: (parent, args) => {
+  
+    let idCount = links.length
+
+       const link = {
+        id: `link-${idCount++}`,
+        description: args.description,
+        url: args.url,
+      }
+      links.push(link)
+      return link
+    }
   }
 }
 
-// 3
 const server = new ApolloServer({
-  typeDefs,
-  resolvers,
+    typeDefs: fs.readFileSync(
+      path.join(__dirname, 'schema.graphql'),
+      'utf8'
+    ),
+    resolvers,
 })
 
 server
