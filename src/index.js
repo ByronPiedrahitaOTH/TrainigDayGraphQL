@@ -17,17 +17,35 @@ const resolvers = {
     feed: () => links,
   },
   Mutation: {
+    // 1
     createLink: (parent, args) => {
   
     let idCount = links.length
 
-       const link = {
+      const link = {
         id: `link-${idCount++}`,
         description: args.description,
         url: args.url,
       }
       links.push(link)
       return link
+    },
+    // 2
+    deleteLink: (parent, args) => {
+  
+      let dataWithoutLink = links.filter(link => link.id !== args.id)
+      links = dataWithoutLink
+      return links
+
+    },
+    updateLink:(parent, args) =>{
+      for (i=0;i<links.length;i++){
+        if(links[i].id === args.id){
+          links[i].description = args.description
+          links[i].url = args.url
+          return links[i]
+        }
+      }
     }
   }
 }
