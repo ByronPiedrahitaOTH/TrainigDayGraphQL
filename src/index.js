@@ -1,53 +1,28 @@
 const { ApolloServer } = require('apollo-server')
 const path = require('path')
 const fs = require('fs')
+const { PrismaClient } = require('@prisma/client')
 
-// Data link fake
-let links = [
-    {
-        id: 'link-0',
-        url: 'www.dominofake.com',
-        description: 'Backend trainig for GraphQL'
-    }
-]
+const prisma = new PrismaClient()
 
 const resolvers = {
   Query: {
     info: () => `We are starting with the training`,
-    feed: () => links,
+    feed: async (parent, args, context) => {
+      return context.prisma.link.findMany()
+    },
   },
   Mutation: {
-    // 1
-    createLink: (parent, args) => {
-  
-    let idCount = links.length
-
-      const link = {
-        id: `link-${idCount++}`,
-        description: args.description,
-        url: args.url,
-      }
-      links.push(link)
-      return link
+    createLink: (parent, args, context, info) => {
+      const newLink = context.prisma.link.create({
+        data: {
+          url: args.url,
+          description: args.description,
+        },
+      })
+      return newLink
     },
-    // 2
-    deleteLink: (parent, args) => {
-  
-      let dataWithoutLink = links.filter(link => link.id !== args.id)
-      links = dataWithoutLink
-      return links
-
-    },
-    updateLink:(parent, args) =>{
-      for (i=0;i<links.length;i++){
-        if(links[i].id === args.id){
-          links[i].description = args.description
-          links[i].url = args.url
-          return links[i]
-        }
-      }
-    }
-  }
+  },
 }
 
 const server = new ApolloServer({
@@ -56,6 +31,9 @@ const server = new ApolloServer({
       'utf8'
     ),
     resolvers,
+    context: {
+      prisma,
+    }
 })
 
 server
